@@ -44,14 +44,14 @@ namespace BoxLib.Scripts
 			}
 			else
 			{
-				byte resRed1 = res[^1].R;
-				byte resGreen1 = res[^1].G;
-				byte resBlue1 = res[^1].B;
-				byte resRed2 = res[^2].R;
-				byte resGreen2 = res[^2].G;
-				byte resBlue2 = res[^2].B;
+				byte resRed1 = res[res.Count - 1].R;
+				byte resGreen1 = res[res.Count - 1].G;
+				byte resBlue1 = res[res.Count - 1].B;
+				byte resRed2 = res[res.Count - 2].R;
+				byte resGreen2 = res[res.Count - 2].G;
+				byte resBlue2 = res[res.Count - 2].B;
 
-				res[^1] = Color.FromArgb((resRed1 + resRed2) / 2, 
+				res[res.Count - 1] = Color.FromArgb((resRed1 + resRed2) / 2, 
 													(resGreen1 + resGreen2) / 2,
 													(resBlue1 + resBlue2) / 2);
 			}
