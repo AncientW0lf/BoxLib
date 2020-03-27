@@ -8,12 +8,12 @@ namespace BoxLib.Scripts
 	{
 		public static List<Color> RgbLinearInterpolate(Color start, Color end, int colorCount)
 		{
-			List<Color> ret = new List<Color>();
+			var ret = new List<Color>();
 
 			// linear interpolation lerp (r,a,b) = (1-r)*a + r*b = (1-r)*(ax,ay,az) + r*(bx,by,bz)
 			for (int n = 0; n < colorCount; n++)
 			{
-				double r = (double)n / (double)(colorCount - 1);
+				double r = n / (double)(colorCount - 1);
 				double nr = 1.0 - r;
 				double A = nr * start.A + r * end.A;
 				double R = nr * start.R + r * end.R;
@@ -27,37 +27,20 @@ namespace BoxLib.Scripts
 		}
 		public static List<Color> RgbLinearInterpolate(Color start, Color middle, Color end, int colorCount)
 		{
-			//if (colorCount % 2 == 0)
-				//throw new ArgumentException("colorCount should be and odd number. Currently it is: " + colorCount);
-
 			var ret = new List<Color>();
 
-			if (colorCount == 0)
+			if (colorCount <= 1)
 				return ret;
 
-			int size = (colorCount + 1) / 2;
+			int size = colorCount / 2;
+			int remaining = colorCount - size + 1;
 
-			List<Color> res = RgbLinearInterpolate(start, middle, size);
-			if (res.Count > 0 && colorCount % 2 == 0)
-			{
-				res.RemoveAt(res.Count - 1);
-			}
-			else
-			{
-				byte resRed1 = res[res.Count - 1].R;
-				byte resGreen1 = res[res.Count - 1].G;
-				byte resBlue1 = res[res.Count - 1].B;
-				byte resRed2 = res[res.Count - 2].R;
-				byte resGreen2 = res[res.Count - 2].G;
-				byte resBlue2 = res[res.Count - 2].B;
+			List<Color> list1 = RgbLinearInterpolate(start, middle, size);
+			List<Color> list2 = RgbLinearInterpolate(middle, end, remaining);
+			list2.RemoveAt(0);
 
-				res[res.Count - 1] = Color.FromArgb((resRed1 + resRed2) / 2, 
-													(resGreen1 + resGreen2) / 2,
-													(resBlue1 + resBlue2) / 2);
-			}
-
-			ret.AddRange(res);
-			ret.AddRange(RgbLinearInterpolate(middle, end, size));
+			ret.AddRange(list1);
+			ret.AddRange(list2);
 
 			return ret;
 		}
@@ -70,17 +53,17 @@ namespace BoxLib.Scripts
 			double q = v * (1.0 - f * s);
 			double t = v * (1.0 - (1.0 - f) * s);
 
-			Color ret = hi switch
-			{
-				0 => GetRgb(v, t, p),
-				1 => GetRgb(q, v, p),
-				2 => GetRgb(p, v, t),
-				3 => GetRgb(p, q, v),
-				4 => GetRgb(t, p, v),
-				5 => GetRgb(v, p, q),
-				_ => Color.FromArgb(0xFF, 0x00, 0x00, 0x00)
-			};
-			return ret;
+            Color ret = hi switch
+            {
+                0 => GetRgb(v, t, p),
+                1 => GetRgb(q, v, p),
+                2 => GetRgb(p, v, t),
+                3 => GetRgb(p, q, v),
+                4 => GetRgb(t, p, v),
+                5 => GetRgb(v, p, q),
+                _ => Color.FromArgb(0xFF, 0x00, 0x00, 0x00)
+            };
+            return ret;
 		}
 		public static Color GetRgb(double r, double g, double b)
 		{
