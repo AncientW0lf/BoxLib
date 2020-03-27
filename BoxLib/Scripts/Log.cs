@@ -23,7 +23,7 @@ namespace BoxLib.Scripts
 		/// <summary>
 		/// The maximum amount of bytes that are allowed in the logs folder before old files will get deleted.
 		/// </summary>
-		private const long MaxBytes = 10485760;
+		public static long MaxBytes = 10485760;
 
 		/// <summary>
 		/// Enables or disables log output.
@@ -71,7 +71,7 @@ namespace BoxLib.Scripts
 				if(!noFile)
 					Trace.WriteLine("");
 
-				Trace.WriteLine($"Start of application lifetime - {DateTime.Now:T}");
+				Trace.WriteLine($"Start of application lifetime - {Process.GetCurrentProcess().StartTime:T}");
 			}
 
 			if(!ShowVerbose && v == TraceEventType.Verbose)
@@ -79,7 +79,13 @@ namespace BoxLib.Scripts
 
 			Trace.IndentLevel = indent;
 
-			Trace.WriteLine($"{message} - {DateTime.Now:T}", v?.ToString().ToUpper());
+			string[] allMessages = message.Split(new[] {"\n", "\r"}, StringSplitOptions.RemoveEmptyEntries);
+
+			for(int i = 0; i < allMessages.Length; i++)
+			{
+				Trace.WriteLine(i == allMessages.Length - 1 ? $"{allMessages[i]} - {DateTime.Now:T}" : $"{allMessages[i]}",
+					v?.ToString().ToUpper());
+			}
 
 			if(!noFlush)
 				Trace.Flush();
