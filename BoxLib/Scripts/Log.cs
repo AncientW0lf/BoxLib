@@ -38,7 +38,7 @@ namespace BoxLib.Scripts
 		/// <summary>
 		/// The standard file logger to use.
 		/// </summary>
-		private static readonly TextWriterTraceListener _fileLogger = new TextWriterTraceListener($"{LogFolder}\\{LogFile}");
+		private static readonly TextWriterTraceListener _fileLogger = new TextWriterTraceListener(Path.Combine(LogFolder, LogFile));
 
 		/// <summary>
 		/// Logs a message with the specified indent and verbosity. Returns whether or not the logging was successful.
@@ -64,7 +64,7 @@ namespace BoxLib.Scripts
 
 			if(!Trace.Listeners.Contains(_fileLogger))
 			{
-				bool noFile = !File.Exists($"{LogFolder}\\{LogFile}");
+				bool noFile = !File.Exists(Path.Combine(LogFolder, LogFile));
 
 				Trace.Listeners.Add(_fileLogger);
 
