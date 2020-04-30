@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Resources;
 
 namespace BoxLib.Scripts
 {
@@ -11,7 +13,7 @@ namespace BoxLib.Scripts
 
 		private readonly string _langListName;
 
-		public LanguageHelper(Type resources, string langListName)
+		public LanguageHelper(Type resources, string langListName = null)
 		{
 			_resources = resources;
 			_langListName = langListName;
@@ -20,6 +22,7 @@ namespace BoxLib.Scripts
 		/// <summary>
 		/// Retrieves a list of all supported languages of a project.
 		/// </summary>
+		[Obsolete("Not intuitive. Please use GetSupportedLanguages instead.")]
 		public string[] GetLanguages()
 		{
 			try
@@ -35,6 +38,35 @@ namespace BoxLib.Scripts
 			{
 				return null;
 			}
+		}
+
+		public CultureInfo[] GetSupportedLanguages()
+		{
+			var supported = new List<CultureInfo>();
+
+			// Pass the class name of your resources as a parameter e.g. MyResources for MyResources.resx
+			var rm = new ResourceManager(_resources);
+
+			CultureInfo[] cultures = CultureInfo.GetCultures(CultureTypes.AllCultures);
+			for(int i = 0; i < cultures.Length; i++)
+			{
+				CultureInfo culture = cultures[i];
+				try
+				{
+					ResourceSet rs = rm.GetResourceSet(culture, true, false);
+
+					if(rs != null)
+					{
+						supported.Add(culture);
+					}
+				}
+				catch(CultureNotFoundException)
+				{
+					//Not supported / Invalid
+				}
+			}
+
+			return supported.ToArray();
 		}
 
 		/// <summary>
