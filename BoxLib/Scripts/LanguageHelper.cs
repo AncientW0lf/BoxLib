@@ -7,12 +7,56 @@ using System.Resources;
 
 namespace BoxLib.Scripts
 {
+	/// <summary>
+	/// This class can help you setup multi-language support for your application.
+	/// It can get and change languages of satellite assemblies.
+	/// </summary>
 	public class LanguageHelper
 	{
+		/// <summary>
+		/// The resource assembly containing all languages.
+		/// </summary>
 		private readonly Type _resources;
 
+		/// <summary>
+		/// The full path to the embedded text file containing a list of supported languages.
+		/// </summary>
+		[Obsolete]
 		private readonly string _langListName;
 
+		/// <summary>
+		/// The <see cref="CultureInfo"/> to use in place of <see cref="CultureInfo.InvariantCulture"/> when
+		/// retrieving a list of supported languages.
+		/// </summary>
+		private readonly CultureInfo _invariantCulture;
+
+		/// <summary>
+		/// Initializes a new <see cref="LanguageHelper"/> with a link to the specified <see cref="resources"/> class.
+		/// </summary>
+		/// <param name="resources">The resource assembly containing all languages.</param>
+		public LanguageHelper(Type resources)
+		{
+			_resources = resources;
+		}
+
+		/// <summary>
+		/// Initializes a new <see cref="LanguageHelper"/> with a link to the specified <see cref="resources"/> class.
+		/// </summary>
+		/// <param name="resources">The resource assembly containing all languages.</param>
+		/// <param name="neutralLang">The <see cref="CultureInfo"/> to use in place of
+		/// <see cref="CultureInfo.InvariantCulture"/> when retrieving a list of supported languages.</param>
+		public LanguageHelper(Type resources, CultureInfo neutralLang)
+		{
+			_resources = resources;
+			_invariantCulture = neutralLang;
+		}
+
+		/// <summary>
+		/// Initializes a new <see cref="LanguageHelper"/> with a link to the specified <see cref="resources"/> class.
+		/// </summary>
+		/// <param name="resources">The resource assembly containing all languages.</param>
+		/// <param name="langListName">The full path to the embedded text file containing a list of supported languages.</param>
+		[Obsolete("Not intuitive. Please use one of the new constructors instead.")]
 		public LanguageHelper(Type resources, string langListName = null)
 		{
 			_resources = resources;
@@ -40,6 +84,9 @@ namespace BoxLib.Scripts
 			}
 		}
 
+		/// <summary>
+		/// Retrieves a list of all supported languages of a project.
+		/// </summary>
 		public CultureInfo[] GetSupportedLanguages()
 		{
 			var supported = new List<CultureInfo>();
@@ -57,6 +104,9 @@ namespace BoxLib.Scripts
 
 					if(rs != null)
 					{
+						if(_invariantCulture != null && culture.Equals(CultureInfo.InvariantCulture))
+							culture = _invariantCulture;
+
 						supported.Add(culture);
 					}
 				}
@@ -74,9 +124,9 @@ namespace BoxLib.Scripts
 		/// </summary>
 		/// <param name="culture">The culture to change to.</param>
 		/// <param name="resources">The class that stores all resource files.</param>
-		public void ChangeLanguage(string culture, Type resources = null)
+		public void ChangeLanguage(string culture)
 		{
-			ChangeLanguage(new CultureInfo(culture), resources);
+			ChangeLanguage(new CultureInfo(culture));
 		}
 
 		/// <summary>
@@ -84,12 +134,9 @@ namespace BoxLib.Scripts
 		/// </summary>
 		/// <param name="culture">The culture to change to.</param>
 		/// <param name="resources">The class that stores all resource files.</param>
-		public void ChangeLanguage(CultureInfo culture, Type resources = null)
+		public void ChangeLanguage(CultureInfo culture)
 		{
-			if(resources == null)
-				resources = _resources;
-
-			resources?.GetProperty("Culture")?.SetValue(null, culture);
+			_resources?.GetProperty("Culture")?.SetValue(null, culture);
 		}
 	}
 }
