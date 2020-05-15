@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace BoxLib.Scripts
+namespace BoxLib.Static
 {
 	public static class ColorUtils
 	{

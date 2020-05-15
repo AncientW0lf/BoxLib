@@ -5,7 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Resources;
 
-namespace BoxLib.Scripts
+namespace BoxLib.Objects
 {
 	/// <summary>
 	/// This class can help you setup multi-language support for your application.

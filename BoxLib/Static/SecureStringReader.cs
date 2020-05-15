@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace BoxLib.Scripts
+namespace BoxLib.Static
 {
     public static class SecureStringReader
     {

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 
-namespace BoxLib.Scripts
+namespace BoxLib.Static
 {
 	public static class Linux
 	{

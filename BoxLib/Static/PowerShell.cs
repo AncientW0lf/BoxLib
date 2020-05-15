@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace BoxLib.Scripts
+namespace BoxLib.Static
 {
 	public static class PowerShell
 	{

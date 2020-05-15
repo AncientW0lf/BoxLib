@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace BoxLib.Scripts
+namespace BoxLib.Static
 {
 	/// <summary>
 	/// This class is responsible to write advanced logs to both the console and a file stream.

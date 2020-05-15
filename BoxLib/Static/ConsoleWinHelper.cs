@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace BoxLib.Scripts
+namespace BoxLib.Static
 {
 	public static class ConsoleWinHelper
 	{
