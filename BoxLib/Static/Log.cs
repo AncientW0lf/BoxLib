@@ -98,6 +98,8 @@ namespace BoxLib.Static
 		/// </summary>
 		public static void Close()
 		{
+			Enabled = false;
+
 			Trace.IndentLevel = 0;
 			Trace.WriteLine($"End of application lifetime - {DateTime.Now:T}");
 
