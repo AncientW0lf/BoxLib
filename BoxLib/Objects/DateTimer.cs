@@ -76,14 +76,13 @@ namespace BoxLib.Objects
 					return;
 
 				//Is the calculated trigger time in the past?
-				if(_nextElapsed <= DateTime.Now)
-				{
-					//Raise the event
-					Elapsed?.Invoke(sender, e);
+				if(_nextElapsed > DateTime.Now) return;
 
-					//Calculate the next trigger time
-					_nextElapsed += Interval;
-				}
+				//Raise the event
+				Elapsed?.Invoke(sender, e);
+
+				//Calculate the next trigger time
+				_nextElapsed += Interval;
 
 				//Stops the timer
 				if(!AutoReset)
