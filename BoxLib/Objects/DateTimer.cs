@@ -62,28 +62,33 @@ namespace BoxLib.Objects
 			Timer.Elapsed += CheckElapsed;
 		}
 
+		private readonly object _elapsedLock = new object();
+
 		/// <summary>
 		/// Checks whether the <see cref="Interval"/> is elapsed or not.
 		/// </summary>
 		protected void CheckElapsed(object sender, ElapsedEventArgs e)
 		{
-			//Ignores any event invokes if this object has been stopped
-			if(!Enabled)
-				return;
-
-			//Is the calculated trigger time in the past?
-			if(_nextElapsed <= DateTime.Now)
+			lock(_elapsedLock)
 			{
-				//Raise the event
-				Elapsed?.Invoke(sender, e);
+				//Ignores any event invokes if this object has been stopped
+				if(!Enabled)
+					return;
 
-				//Calculate the next trigger time
-				_nextElapsed += Interval;
+				//Is the calculated trigger time in the past?
+				if(_nextElapsed <= DateTime.Now)
+				{
+					//Raise the event
+					Elapsed?.Invoke(sender, e);
+
+					//Calculate the next trigger time
+					_nextElapsed += Interval;
+				}
+
+				//Stops the timer
+				if(!AutoReset)
+					Stop();
 			}
-
-			//Stops the timer
-			if(!AutoReset)
-				Stop();
 		}
 
 		/// <summary>
