@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -113,13 +114,16 @@ namespace BoxLib.Static
 				totalBytes += logfiles[i].Length;
 			}
 
+			List<FileInfo> orderedFiles = logfiles.OrderBy(a => a.LastWriteTimeUtc).ToList();
+
 			while(totalBytes > MaxBytes)
 			{
-				FileInfo oldFile = logfiles.OrderBy(a => a.LastWriteTimeUtc).FirstOrDefault();
+				FileInfo oldFile = orderedFiles.FirstOrDefault();
 
 				totalBytes -= oldFile?.Length ?? 0;
 
 				oldFile?.Delete();
+				orderedFiles.Remove(oldFile);
 			}
 		}
 	}
