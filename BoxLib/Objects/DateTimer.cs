@@ -48,6 +48,8 @@ namespace BoxLib.Objects
 		/// </summary>
 		public bool Enabled { get; protected set; }
 
+		public bool HandleStartTimeAsElapsed { get; set; }
+
 		/// <summary>
 		/// Initializes a new <see cref="DateTimer"/>.
 		/// </summary>
@@ -96,7 +98,9 @@ namespace BoxLib.Objects
 		public void Start()
 		{
 			//Sets the next trigger time to either the start time or the calculated next time based on the interval
-			_nextElapsed = StartTime ?? DateTime.Now + Interval;
+			_nextElapsed = StartTime != null && HandleStartTimeAsElapsed 
+				? StartTime.Value
+				: (StartTime ?? DateTime.Now) + Interval;
 
 			//Starts the timer
 			Timer?.Start();
