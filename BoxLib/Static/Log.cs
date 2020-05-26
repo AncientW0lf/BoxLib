@@ -19,7 +19,7 @@ namespace BoxLib.Static
 		/// <summary>
 		/// The current log file that is written during application lifetime.
 		/// </summary>
-		private static readonly string LogFile = $"{DateTime.Today:yy-MM-dd}.log";
+		public static readonly string LogFile = $"{DateTime.Today:yy-MM-dd}.log";
 
 		/// <summary>
 		/// The maximum amount of bytes that are allowed in the logs folder before old files will get deleted.
