@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using BoxLib.Static;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -7,6 +8,45 @@ namespace BoxLib.Tests
 	[TestClass]
 	public class LogTest
 	{
+		private void ClearLogFolder()
+		{
+			string[] files = Directory.GetFiles("Logs");
+			for(int i = 0; i < files.Length; i++)
+			{
+				File.Delete(files[i]);
+			}
+		}
+		
+		[TestMethod]
+		public void TestVerboseLoggingOn()
+		{
+			ClearLogFolder();
+
+			Log.ShowVerbose = true;
+			Log.Write("Test Test Test", 1, TraceEventType.Verbose);
+			Log.Close();
+
+			using FileStream file = File.OpenRead($@"Logs\{Log.LogFile}");
+			using var reader = new StreamReader(file);
+
+			Assert.IsTrue(reader.ReadToEnd().ToLower().Contains(TraceEventType.Verbose.ToString().ToLower()));
+		}
+
+		[TestMethod]
+		public void TestVerboseLoggingOff()
+		{
+			ClearLogFolder();
+
+			Log.ShowVerbose = false;
+			Log.Write("Test Test Test", 1, TraceEventType.Verbose);
+			Log.Close();
+
+			using FileStream file = File.OpenRead($@"Logs\{Log.LogFile}");
+			using var reader = new StreamReader(file);
+
+			Assert.IsFalse(reader.ReadToEnd().ToLower().Contains(TraceEventType.Verbose.ToString().ToLower()));
+		}
+
 		[TestMethod]
 		public void TestClose()
 		{
@@ -25,13 +65,10 @@ namespace BoxLib.Tests
 			Log.MaxBytes = 6291456;
 			Log.Close();
 
-			string[] files = Directory.GetFiles("Logs");
-			Assert.IsTrue(files.Length == 1, $"{files.Length} files remain.");
+			int fileCount = Directory.GetFiles("Logs").Length;
+			Assert.IsTrue(fileCount == 1, $"{fileCount} files remain.");
 
-			for(int i = 0; i < files.Length; i++)
-			{
-				File.Delete(files[i]);
-			}
+			ClearLogFolder();
 		}
 	}
 }
