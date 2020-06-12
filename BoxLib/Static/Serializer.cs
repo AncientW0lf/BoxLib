@@ -13,10 +13,11 @@ namespace BoxLib.Static
 		/// </summary>
 		/// <typeparam name="T">The type to deserialize the input into.</typeparam>
 		/// <param name="input">The string to be deserialized.</param>
+		/// <param name="root">The root element of the serialized data.</param>
 		/// <returns>The deserialized object.</returns>
-		public static T Deserialize<T>(string input) where T : class
+		public static T Deserialize<T>(string input, string root = null)
 		{
-			var ser = new XmlSerializer(typeof(T));
+			var ser = new XmlSerializer(typeof(T), !string.IsNullOrWhiteSpace(root) ? new XmlRootAttribute(root) : null);
 
 			using (var sr = new StringReader(input))
 			{
