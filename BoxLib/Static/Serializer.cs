@@ -23,16 +23,18 @@ namespace BoxLib.Static
 				return (T)ser.Deserialize(sr);
 			}
 		}
-		
+
 		/// <summary>
 		/// Serializes an object with the specified type into a string.
 		/// </summary>
 		/// <typeparam name="T">The type that will be serialized.</typeparam>
 		/// <param name="objectToSerialize">The object to be serialized.</param>
+		/// <param name="root">The root element of the serialized data.</param>
 		/// <returns>The serialized string.</returns>
-		public static string Serialize<T>(T objectToSerialize)
+		public static string Serialize<T>(T objectToSerialize, string root = null)
 		{
-			var xmlSerializer = new XmlSerializer(objectToSerialize.GetType());
+			var xmlSerializer = new XmlSerializer(objectToSerialize.GetType(), 
+				!string.IsNullOrWhiteSpace(root) ? new XmlRootAttribute(root) : null);
 
 			using (var textWriter = new StringWriter())
 			{
