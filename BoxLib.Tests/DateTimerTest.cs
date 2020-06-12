@@ -26,7 +26,7 @@ namespace BoxLib.Tests
 
 			using var timer = new DateTimer(10)
 			{
-				Interval = new TimeSpan(0, 1, 0),
+				Interval = new TimeSpan(0, 0, 6),
 				AutoReset = false,
 				StartTime = timing,
 				HandleStartTimeAsElapsed = false
@@ -43,9 +43,9 @@ namespace BoxLib.Tests
 			{
 				waiter.WaitOne(60000 * 3);
 				DateTime now = DateTime.Now;
-				Assert.IsTrue(timing.AddMinutes(1).ToString("T")
+				Assert.IsTrue(timing.AddSeconds(6).ToString("T")
 						.Equals(now.Subtract(new TimeSpan(0, 0, 0, 0, now.Millisecond)).ToString("T")), 
-					$"Timing is off! Should be {timing.AddMinutes(1):T} but is {now:T}.");
+					$"Timing is off! Should be {timing.AddSeconds(6):T} but is {now:T}.");
 			});
 		}
 	}
