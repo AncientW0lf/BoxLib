@@ -1,7 +1,6 @@
-using System.Diagnostics;
-using System.IO;
-using BoxLib.Static;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
+using BoxLib.Objects;
 
 namespace BoxLib.Tests
 {
@@ -18,12 +17,13 @@ namespace BoxLib.Tests
 		}
 
 		[TestMethod]
-		public void TestClose()
+		public void TestCleanup()
 		{
-			for(int i = 0; i < 5; i++)
+			var log = new Log(false, "Logs");
+
+			Directory.CreateDirectory("Logs");
+			using(FileStream file = File.Create(@"Logs\BigFile0"))
 			{
-				Directory.CreateDirectory("Logs");
-				using FileStream file = File.Create($@"Logs\BigFile{i}");
 				using var writer = new StreamWriter(file);
 
 				while(file.Length < 5242880)
@@ -32,8 +32,18 @@ namespace BoxLib.Tests
 				}
 			}
 
-			Log.MaxBytes = 6291456;
-			Log.Close();
+			for(int i = 1; i < 5; i++)
+			{
+				string currFile = $@"Logs\BigFile{i}";
+
+				if(File.Exists(currFile))
+					File.Delete(currFile);
+
+				File.Copy(@"Logs\BigFile0", currFile);
+			}
+
+			log.DeleteOldLogs(5242880);
+			log.Dispose();
 
 			int fileCount = Directory.GetFiles("Logs").Length;
 			Assert.IsTrue(fileCount == 1, $"{fileCount} files remain.");
