@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace BoxLib.Tests
 {
 	[TestClass]
-	public class EncodingTest
+	public class EncryptionTest
 	{
 		[TestMethod]
 		public void TestSecureKeys()
