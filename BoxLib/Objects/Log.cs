@@ -293,6 +293,7 @@ namespace BoxLib.Objects
 
 			for(int i = 0; i < _listeners.Count; i++)
 			{
+				_listeners[i].Dispose();
 				Trace.Listeners.Remove(_listeners[i]);
 			}
 
