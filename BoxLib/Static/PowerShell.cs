@@ -1,16 +1,14 @@
 ﻿using System.Diagnostics;
 using System.Threading.Tasks;
+using BoxLib.Objects;
 
 namespace BoxLib.Static
 {
 	public static class PowerShell
 	{
-		public static bool UseLog = true;
-
-		public static async Task Run(string command, int timeout)
+		public static async Task Run(string command, int timeout, Log log = null)
 		{
-			if(UseLog)
-				Log.Write("Starting new PowerShell process...", 1, TraceEventType.Information);
+			log?.Write("Starting new PowerShell process...", TraceEventType.Information);
 
 			using var proc = new Process
 			{
@@ -31,17 +29,13 @@ namespace BoxLib.Static
 			if(!proc.HasExited)
 				proc.Kill();
 
-			if(UseLog)
-			    Log.Write($"Closed PowerShell process with exit code {proc.ExitCode}.", 1, TraceEventType.Information);
+			log?.Write($"Closed PowerShell process with exit code {proc.ExitCode}.", TraceEventType.Information);
 
 			string outp = proc.StandardOutput.ReadToEnd();
 			string errp = proc.StandardError.ReadToEnd();
 
-            if(UseLog)
-            {
-                Log.Write("PowerShell output:", 1, TraceEventType.Information, true);
-                Log.Write($"{outp}\nErrors:\n{errp}", 2, null);
-            }
+            log?.Write("PowerShell output:\n" + 
+                       $"{outp}\nErrors:\n{errp}", TraceEventType.Information);
 
 			proc.Close();
 		}
