@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace BoxLib.Static
+namespace BoxLib.External
 {
 	/// <summary>
 	/// Provides methods for direct memory manipulation of your application.
