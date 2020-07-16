@@ -59,6 +59,8 @@ namespace BoxLib.Objects
 		/// </summary>
 		private readonly List<TraceListener> _listeners = new List<TraceListener>();
 
+		private readonly object _lock = new object();
+
 		/// <summary>
 		/// Initializes a new <see cref="Log"/> object.
 		/// </summary>
@@ -96,99 +98,102 @@ namespace BoxLib.Objects
 		/// <param name="eventType">The type of event that this message is associated with.</param>
 		public void Write(string message, TraceEventType? eventType = null)
 		{
-			//Returns if the message is verbose and verbose messages are disabled
-			//Also returns if this object is disabled in general
-			if(eventType == TraceEventType.Verbose && !ShowVerbose 
-			   || !Enabled)
-				return;
-
-			//Temporarily turns off auto flush
-			bool tempFlush = Trace.AutoFlush;
-			Trace.AutoFlush = false;
-
-			//Gets the current foreground color of the console window, if necessary
-			ConsoleColor? prevColor = UsesConsole 
-				? Console.ForegroundColor
-				: (ConsoleColor?)null;
-
-			Trace.Write('[');
-
-			//Changes the console foreground color to highlight the current date/time
-			if(UsesConsole)
-				Console.ForegroundColor = ConsoleColor.Yellow;
-
-			//Writes the current date/time in a specified format
-			Trace.Write(DateTime.Now.ToString(DateTimeFormat));
-
-			//Changes the console foreground color back to the previous value
-			if(prevColor.HasValue)
-				Console.ForegroundColor = prevColor.Value;
-
-			Trace.Write(']');
-
-			if(eventType != null)
+			lock(_lock)
 			{
-				Trace.Write(" [");
+				//Returns if the message is verbose and verbose messages are disabled
+				//Also returns if this object is disabled in general
+				if(eventType == TraceEventType.Verbose && !ShowVerbose 
+				   || !Enabled)
+					return;
 
-				//Changes the console foreground color depending on the current event type
+				//Temporarily turns off auto flush
+				bool tempFlush = Trace.AutoFlush;
+				Trace.AutoFlush = false;
+
+				//Gets the current foreground color of the console window, if necessary
+				ConsoleColor? prevColor = UsesConsole 
+					? Console.ForegroundColor
+					: (ConsoleColor?)null;
+
+				Trace.Write('[');
+
+				//Changes the console foreground color to highlight the current date/time
 				if(UsesConsole)
-				{
-					Console.ForegroundColor = eventType switch
-					{
-						TraceEventType.Information => ConsoleColor.Blue,
-						TraceEventType.Critical => ConsoleColor.Magenta,
-						TraceEventType.Error => ConsoleColor.Red,
-						TraceEventType.Resume => ConsoleColor.Cyan,
-						TraceEventType.Start => ConsoleColor.Cyan,
-						TraceEventType.Stop => ConsoleColor.Cyan,
-						TraceEventType.Suspend => ConsoleColor.Cyan,
-						TraceEventType.Transfer => ConsoleColor.Cyan,
-						TraceEventType.Verbose => ConsoleColor.DarkGray,
-						TraceEventType.Warning => ConsoleColor.DarkYellow,
-						_ => Console.ForegroundColor
-					};
-				}
+					Console.ForegroundColor = ConsoleColor.Yellow;
 
-				//Writes the associated event type of this message
-				Trace.Write(eventType.ToString().ToUpper());
+				//Writes the current date/time in a specified format
+				Trace.Write(DateTime.Now.ToString(DateTimeFormat));
 
+				//Changes the console foreground color back to the previous value
 				if(prevColor.HasValue)
 					Console.ForegroundColor = prevColor.Value;
 
 				Trace.Write(']');
+
+				if(eventType != null)
+				{
+					Trace.Write(" [");
+
+					//Changes the console foreground color depending on the current event type
+					if(UsesConsole)
+					{
+						Console.ForegroundColor = eventType switch
+						{
+							TraceEventType.Information => ConsoleColor.Blue,
+							TraceEventType.Critical => ConsoleColor.Magenta,
+							TraceEventType.Error => ConsoleColor.Red,
+							TraceEventType.Resume => ConsoleColor.Cyan,
+							TraceEventType.Start => ConsoleColor.Cyan,
+							TraceEventType.Stop => ConsoleColor.Cyan,
+							TraceEventType.Suspend => ConsoleColor.Cyan,
+							TraceEventType.Transfer => ConsoleColor.Cyan,
+							TraceEventType.Verbose => ConsoleColor.DarkGray,
+							TraceEventType.Warning => ConsoleColor.DarkYellow,
+							_ => Console.ForegroundColor
+						};
+					}
+
+					//Writes the associated event type of this message
+					Trace.Write(eventType.ToString().ToUpper());
+
+					if(prevColor.HasValue)
+						Console.ForegroundColor = prevColor.Value;
+
+					Trace.Write(']');
+				}
+
+				//Splits the message at every new line to prevent wrong indentation
+				string[] allMessages = message.Split(new[] {"\n", "\r"}, StringSplitOptions.RemoveEmptyEntries);
+
+				if(allMessages.Length > 1)
+				{
+					//Writes all messages in an indented box
+					Trace.WriteLine(null);
+					Trace.Indent();
+				}
+				else
+				{
+					//Simply writes a space as the message is only on line long
+					Trace.Write(' ');
+				}
+
+				//Writes all message lines
+				for(int i = 0; i < allMessages.Length; i++)
+				{
+					Trace.WriteLine(allMessages[i]);
+				}
+
+				//Unindents again, if necessary
+				if(allMessages.Length > 1)
+					Trace.Unindent();
+
+				//Flushes the content, if necessary
+				if(AutoFlush)
+					Trace.Flush();
+
+				//Changes the trace auto flush back to the previous value
+				Trace.AutoFlush = tempFlush;
 			}
-
-			//Splits the message at every new line to prevent wrong indentation
-			string[] allMessages = message.Split(new[] {"\n", "\r"}, StringSplitOptions.RemoveEmptyEntries);
-
-			if(allMessages.Length > 1)
-			{
-				//Writes all messages in an indented box
-				Trace.WriteLine(null);
-				Trace.Indent();
-			}
-			else
-			{
-				//Simply writes a space as the message is only on line long
-				Trace.Write(' ');
-			}
-
-			//Writes all message lines
-			for(int i = 0; i < allMessages.Length; i++)
-			{
-				Trace.WriteLine(allMessages[i]);
-			}
-
-			//Unindents again, if necessary
-			if(allMessages.Length > 1)
-				Trace.Unindent();
-
-			//Flushes the content, if necessary
-			if(AutoFlush)
-				Trace.Flush();
-
-			//Changes the trace auto flush back to the previous value
-			Trace.AutoFlush = tempFlush;
 		}
 
 		/// <summary>
@@ -289,24 +294,27 @@ namespace BoxLib.Objects
 		/// <inheritdoc />
 		public void Dispose()
 		{
-			End();
-
-			for(int i = 0; i < _listeners.Count; i++)
+			lock(_lock)
 			{
-				_listeners[i].Dispose();
-				Trace.Listeners.Remove(_listeners[i]);
-			}
+				End();
 
-			if(!DeleteOnDispose)
-				return;
+				for(int i = 0; i < _listeners.Count; i++)
+				{
+					_listeners[i].Dispose();
+					Trace.Listeners.Remove(_listeners[i]);
+				}
 
-			try
-			{
-				DeleteOldLogs();
-			}
-			catch(Exception)
-			{
-				//Ignore
+				if(!DeleteOnDispose)
+					return;
+
+				try
+				{
+					DeleteOldLogs();
+				}
+				catch(Exception)
+				{
+					//Ignore
+				}
 			}
 		}
 	}
