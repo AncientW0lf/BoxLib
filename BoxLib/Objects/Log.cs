@@ -34,10 +34,10 @@ namespace BoxLib.Objects
 		public bool ShowVerbose { get; set; }
 
 		/// <summary>
-		/// If this flag is set to true, the <see cref="DeleteOldLogs"/> will automatically
-		/// be called with default parameters on <see cref="Dispose"/>.
+		/// If this value is set to >=0 then <see cref="DeleteOldLogs"/> will automatically
+		/// be called on <see cref="Dispose"/>.
 		/// </summary>
-		public bool DeleteOnDispose { get; set; } = true;
+		public long DeleteOnDispose { get; set; } = 10485760;
 
 		/// <summary>
 		/// Gets whether this object writes to the console or not.
@@ -304,7 +304,7 @@ namespace BoxLib.Objects
 					Trace.Listeners.Remove(_listeners[i]);
 				}
 
-				if(!DeleteOnDispose)
+				if(DeleteOnDispose < 0)
 					return;
 
 				try
