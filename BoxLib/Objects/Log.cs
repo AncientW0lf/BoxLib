@@ -169,6 +169,8 @@ namespace BoxLib.Objects
 			//Splits the message at every new line to prevent wrong indentation
 			string[] allMessages = message.Split(new[] {"\n", "\r"}, StringSplitOptions.RemoveEmptyEntries);
 
+			int originalIndent = Trace.IndentLevel;
+
 			if(allMessages.Length > 1)
 			{
 				//Writes all messages in an indented box
@@ -189,7 +191,7 @@ namespace BoxLib.Objects
 
 			//Unindents again, if necessary
 			if(allMessages.Length > 1)
-				Trace.Unindent();
+				Trace.IndentLevel = originalIndent;
 
 			//Flushes the content, if necessary
 			if(AutoFlush)
@@ -282,6 +284,7 @@ namespace BoxLib.Objects
 		/// </summary>
 		private void Start()
 		{
+			Trace.UseGlobalLock = true;
 			Write($"--- {AppDomain.CurrentDomain.FriendlyName} ---", TraceEventType.Start);
 			Trace.Indent();
 		}
