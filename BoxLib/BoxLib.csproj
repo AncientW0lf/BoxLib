@@ -10,6 +10,7 @@
     <RepositoryUrl>https://github.com/AncientW0lf/BoxLib</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <DocumentationFile>C:\Users\GrafD\source\repos\BoxLib\BoxLib\BoxLib.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
