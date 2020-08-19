@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace BoxLib.Objects
 {
@@ -98,102 +99,108 @@ namespace BoxLib.Objects
 		/// <param name="eventType">The type of event that this message is associated with.</param>
 		public void Write(string message, TraceEventType? eventType = null)
 		{
-			lock(_lock)
+			if(!Monitor.TryEnter(_lock, TimeSpan.FromMinutes(1)))
 			{
-				//Returns if the message is verbose and verbose messages are disabled
-				//Also returns if this object is disabled in general
-				if(eventType == TraceEventType.Verbose && !ShowVerbose 
-				   || !Enabled)
-					return;
+				_listeners.ForEach(listener => listener?.WriteLine("-- Could not write message! --"));
+			}
 
-				//Temporarily turns off auto flush
-				bool tempFlush = Trace.AutoFlush;
-				Trace.AutoFlush = false;
+			//Returns if the message is verbose and verbose messages are disabled
+			//Also returns if this object is disabled in general
+			if(eventType == TraceEventType.Verbose && !ShowVerbose 
+				|| !Enabled)
+				return;
 
-				//Gets the current foreground color of the console window, if necessary
-				ConsoleColor? prevColor = UsesConsole 
-					? Console.ForegroundColor
-					: (ConsoleColor?)null;
+			//Temporarily turns off auto flush
+			bool tempFlush = Trace.AutoFlush;
+			Trace.AutoFlush = false;
 
-				Trace.Write('[');
+			//Gets the current foreground color of the console window, if necessary
+			ConsoleColor? prevColor = UsesConsole 
+				? Console.ForegroundColor
+				: (ConsoleColor?)null;
 
-				//Changes the console foreground color to highlight the current date/time
+			Trace.Write('[');
+
+			//Changes the console foreground color to highlight the current date/time
+			if(UsesConsole)
+				Console.ForegroundColor = ConsoleColor.Yellow;
+
+			//Writes the current date/time in a specified format
+			Trace.Write(DateTime.Now.ToString(DateTimeFormat));
+
+			//Changes the console foreground color back to the previous value
+			if(prevColor.HasValue)
+				Console.ForegroundColor = prevColor.Value;
+
+			Trace.Write(']');
+
+			if(eventType != null)
+			{
+				Trace.Write(" [");
+
+				//Changes the console foreground color depending on the current event type
 				if(UsesConsole)
-					Console.ForegroundColor = ConsoleColor.Yellow;
+				{
+					Console.ForegroundColor = eventType switch
+					{
+						TraceEventType.Information => ConsoleColor.Blue,
+						TraceEventType.Critical => ConsoleColor.Magenta,
+						TraceEventType.Error => ConsoleColor.Red,
+						TraceEventType.Resume => ConsoleColor.Cyan,
+						TraceEventType.Start => ConsoleColor.Cyan,
+						TraceEventType.Stop => ConsoleColor.Cyan,
+						TraceEventType.Suspend => ConsoleColor.Cyan,
+						TraceEventType.Transfer => ConsoleColor.Cyan,
+						TraceEventType.Verbose => ConsoleColor.DarkGray,
+						TraceEventType.Warning => ConsoleColor.DarkYellow,
+						_ => Console.ForegroundColor
+					};
+				}
 
-				//Writes the current date/time in a specified format
-				Trace.Write(DateTime.Now.ToString(DateTimeFormat));
+				//Writes the associated event type of this message
+				Trace.Write(eventType.ToString().ToUpper());
 
-				//Changes the console foreground color back to the previous value
 				if(prevColor.HasValue)
 					Console.ForegroundColor = prevColor.Value;
 
 				Trace.Write(']');
-
-				if(eventType != null)
-				{
-					Trace.Write(" [");
-
-					//Changes the console foreground color depending on the current event type
-					if(UsesConsole)
-					{
-						Console.ForegroundColor = eventType switch
-						{
-							TraceEventType.Information => ConsoleColor.Blue,
-							TraceEventType.Critical => ConsoleColor.Magenta,
-							TraceEventType.Error => ConsoleColor.Red,
-							TraceEventType.Resume => ConsoleColor.Cyan,
-							TraceEventType.Start => ConsoleColor.Cyan,
-							TraceEventType.Stop => ConsoleColor.Cyan,
-							TraceEventType.Suspend => ConsoleColor.Cyan,
-							TraceEventType.Transfer => ConsoleColor.Cyan,
-							TraceEventType.Verbose => ConsoleColor.DarkGray,
-							TraceEventType.Warning => ConsoleColor.DarkYellow,
-							_ => Console.ForegroundColor
-						};
-					}
-
-					//Writes the associated event type of this message
-					Trace.Write(eventType.ToString().ToUpper());
-
-					if(prevColor.HasValue)
-						Console.ForegroundColor = prevColor.Value;
-
-					Trace.Write(']');
-				}
-
-				//Splits the message at every new line to prevent wrong indentation
-				string[] allMessages = message.Split(new[] {"\n", "\r"}, StringSplitOptions.RemoveEmptyEntries);
-
-				if(allMessages.Length > 1)
-				{
-					//Writes all messages in an indented box
-					Trace.WriteLine(null);
-					Trace.Indent();
-				}
-				else
-				{
-					//Simply writes a space as the message is only on line long
-					Trace.Write(' ');
-				}
-
-				//Writes all message lines
-				for(int i = 0; i < allMessages.Length; i++)
-				{
-					Trace.WriteLine(allMessages[i]);
-				}
-
-				//Unindents again, if necessary
-				if(allMessages.Length > 1)
-					Trace.Unindent();
-
-				//Flushes the content, if necessary
-				if(AutoFlush)
-					Trace.Flush();
-
-				//Changes the trace auto flush back to the previous value
-				Trace.AutoFlush = tempFlush;
 			}
+
+			//Splits the message at every new line to prevent wrong indentation
+			string[] allMessages = message.Split(new[] {"\n", "\r"}, StringSplitOptions.RemoveEmptyEntries);
+
+			int originalIndent = Trace.IndentLevel;
+
+			if(allMessages.Length > 1)
+			{
+				//Writes all messages in an indented box
+				Trace.WriteLine(null);
+				Trace.Indent();
+			}
+			else
+			{
+				//Simply writes a space as the message is only on line long
+				Trace.Write(' ');
+			}
+
+			//Writes all message lines
+			for(int i = 0; i < allMessages.Length; i++)
+			{
+				Trace.WriteLine(allMessages[i]);
+			}
+
+			//Unindents again, if necessary
+			if(allMessages.Length > 1)
+				Trace.IndentLevel = originalIndent;
+
+			//Flushes the content, if necessary
+			if(AutoFlush)
+				Trace.Flush();
+
+			//Changes the trace auto flush back to the previous value
+			Trace.AutoFlush = tempFlush;
+
+			Monitor.Exit(_lock);
 		}
 
 		/// <summary>
@@ -277,6 +284,7 @@ namespace BoxLib.Objects
 		/// </summary>
 		private void Start()
 		{
+			Trace.UseGlobalLock = true;
 			Write($"--- {AppDomain.CurrentDomain.FriendlyName} ---", TraceEventType.Start);
 			Trace.Indent();
 		}
